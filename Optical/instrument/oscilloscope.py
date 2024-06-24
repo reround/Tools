@@ -13,7 +13,30 @@ import matplotlib.pyplot as plt
 from scipy import fftpack
 
 
-class Tek(object):
+class Oscilloscope:
+    """示波器基类"""
+
+    def __init__(self):
+        pass
+
+    def read_parameters(self) -> dict:
+        """
+        读取文件设置
+
+        :return dict: 参数和值对应的字典
+        """
+        pass
+
+    def read_data(self) -> tuple:
+        """
+        读取文件数据
+
+        :return tuple: 返回两个列表，需要两个变量接收
+        """
+        pass
+
+
+class Tek(Oscilloscope):
     """
     Tek 示波器文件类
     """
@@ -103,6 +126,45 @@ class Tek(object):
         plt.xlabel("Frequency (Hz)")
         plt.ylabel("Amplitude")
         plt.show()
+
+
+class UntitleOs(Oscilloscope):
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.parameters = self.read_parameters()
+        self.t, self.s = self.read_data()
+
+        self.Record_Length = self.parameters['"Record Length"'].astype(np.int64)
+        self.Sample_Interval = self.parameters['"Sample Interval"'].astype(np.float64)
+        self.Trigger_Point = self.parameters['"Trigger Point"'].astype(np.int64)
+        self.Trigger_Time = self.parameters['"Trigger Time"'].astype(np.float64)
+        self.Horizontal_Offset = self.parameters['"Horizontal Offset"'].astype(
+            np.float64
+        )
+
+        self.total_time = self.Sample_Interval * self.Record_Length
+        self.Sample_Rate = 1 / self.Sample_Interval
+
+    def read_parameters(self) -> dict:
+        """
+        读取文件设置
+
+        :return dict: 参数和值对应的字典
+        """
+        data = np.loadtxt(
+            self.filename, dtype="str", delimiter=",", usecols=(0, 1), unpack=True
+        )
+        temp = {key: value for key, value in zip(data[0][:6], data[1][:6]) if key != ""}
+        return temp
+
+    def read_data(self) -> tuple:
+        """
+        读取 tex 文件数据
+
+        :return tuple: 返回第3、4列，两个列表，需要两个变量接收
+        """
+        data = np.loadtxt(self.filename, delimiter=",", usecols=(3, 4), unpack=True)
+        return (data[0], data[1])
 
 
 if __name__ == "__main__":
