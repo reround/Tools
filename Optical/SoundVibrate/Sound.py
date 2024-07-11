@@ -69,6 +69,10 @@ class Sound:
         Args:
             array (np.ndarray): np.ndarray 序列
         """
+        # 防止声音过小
+        array_max = np.max(array)
+        if array_max < 5000:
+            array *= 5000 / array_max
         array_bytes = array.astype(np.int16).tobytes()
         self.open_stream()
         self.stream.write(array_bytes)
@@ -111,6 +115,6 @@ if __name__ == "__main__":
     # b = np.array(b).astype(np.int16).tobytes()
 
     s = Sound(rate=fs)
-    # s.play_ndarray(b)
+    s.play_ndarray(b)
     # s.creat_wav_with_ndarray(b, "xx.wav")
-    s.record("hello.wav", 3)
+    # s.record("hello.wav", 3)
